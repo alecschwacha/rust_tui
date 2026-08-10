@@ -4,7 +4,6 @@ mod tui;
 use crossterm::event::{self, Event, KeyCode};
 use github::GithubClient;
 use ratatui::DefaultTerminal;
-use tui::render;
 
 fn main() -> anyhow::Result<()> {
     let github = GithubClient::new();
