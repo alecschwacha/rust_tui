@@ -1,11 +1,3 @@
-pub struct PRRequest {
-    pub id: u32,
-    pub title: String,
-    pub is_draft: bool,
-    pub review_status: ReviewStatus,
-    pub ci_status: CIStatus,
-}
-
 #[derive(Debug, Clone, Copy)]
 pub enum ReviewStatus {
     Approved,
@@ -20,4 +12,16 @@ pub enum CIStatus {
     Failure,
     Pending,
     Unknown,
+}
+
+#[derive(Debug, Clone)]
+pub struct PRRequest {
+    pub repo: String,
+    pub number: u64,
+    pub title: String,
+    pub url: String,
+    pub author: String,
+    pub is_draft: bool,
+    pub review_status: ReviewStatus,
+    pub ci_status: CIStatus,
 }

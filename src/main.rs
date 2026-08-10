@@ -1,25 +1,36 @@
-use ratatui::{layout::Alignment, widgets::Block, DefaultTerminal, Frame};
+mod github;
+mod tui;
 
-fn main() -> color_eyre::Result<()> {
-    color_eyre::install()?;
-    ratatui::run(app)?;
+use crossterm::event::{self, Event, KeyCode};
+use github::GithubClient;
+use ratatui::DefaultTerminal;
+use tui::render;
+
+fn main() -> anyhow::Result<()> {
+    let github = GithubClient::new();
+
+    let _prs = github.my_open_prs()?;
+
+    let mut terminal = ratatui::init();
+
+    let result = run(&mut terminal, &_prs);
+
+    result?;
+
     Ok(())
 }
 
-fn app(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
+fn run(terminal: &mut DefaultTerminal, prs: &[github::PRRequest]) -> std::io::Result<()> {
     loop {
-        terminal.draw(render)?;
-        if crossterm::event::read()?.is_key_press() {
-            break Ok(());
+        terminal.draw(|frame| {
+            tui::render(frame, prs);
+        })?;
+
+        if let Event::Key(key) = event::read()? {
+            if key.code == KeyCode::Char('q') {
+                break;
+            }
         }
     }
-}
-
-fn render(frame: &mut Frame) {
-    let area = frame.area();
-    let block = Block::default()
-        .title_top("Hello, Ratatui!")
-        .title_alignment(Alignment::Center)
-        .borders(ratatui::widgets::Borders::ALL);
-    frame.render_widget(block, area);
+    Ok(())
 }
