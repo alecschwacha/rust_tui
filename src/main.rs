@@ -1,34 +1,42 @@
 mod github;
+mod tasks;
 mod tui;
 
-use crossterm::event::{self, Event, KeyCode};
+use std::{path::Path, time::Duration};
+
+use crossterm::event::{self, Event, KeyEventKind};
 use github::GithubClient;
 use ratatui::DefaultTerminal;
+use tui::App;
 
 fn main() -> anyhow::Result<()> {
-    let github = GithubClient::new();
-
-    let _prs = github.my_open_prs()?;
+    let path = tasks::path();
+    // A gh failure is shown in the PR panel instead of killing the app.
+    let mut app = App::new(tasks::Tasks::load(&path)?, GithubClient::new().my_open_prs());
 
     let mut terminal = ratatui::init();
-
-    let result = run(&mut terminal, &_prs);
-
-    result?;
-
-    Ok(())
+    let result = run(&mut terminal, &mut app, &path);
+    ratatui::restore();
+    result
 }
 
-fn run(terminal: &mut DefaultTerminal, prs: &[github::PRRequest]) -> std::io::Result<()> {
-    loop {
-        terminal.draw(|frame| {
-            tui::render(frame, prs);
-        })?;
+fn run(terminal: &mut DefaultTerminal, app: &mut App, path: &Path) -> anyhow::Result<()> {
+    while !app.quit {
+        terminal.draw(|frame| tui::render(frame, app))?;
 
-        if let Event::Key(key) = event::read()? {
-            if key.code == KeyCode::Char('q') {
-                break;
+        // ~60fps while the panes slide, otherwise just often enough to keep the clock current.
+        let wait = Duration::from_millis(if app.animating() { 16 } else { 250 });
+        if event::poll(wait)? {
+            if let Event::Key(key) = event::read()? {
+                if key.kind == KeyEventKind::Press {
+                    app.handle_key(key);
+                }
             }
+        }
+        app.tick();
+        if app.dirty {
+            app.tasks.save(path)?;
+            app.dirty = false;
         }
     }
     Ok(())
