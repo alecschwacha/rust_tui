@@ -1,6 +1,6 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-use crate::github::PRRequest;
+use crate::github::{GithubClient, PRRequest};
 use crate::tasks::{Task, Tasks};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -128,6 +128,11 @@ impl App {
                 KeyCode::Char('l') => self.switch_zone(Zone::Done),
                 KeyCode::Char('j') => self.switch_zone(Zone::Prs),
                 KeyCode::Char('k') => self.switch_zone(Zone::Todo),
+                // ponytail: blocks the UI while gh runs (~1s); move to a thread if that gets annoying.
+                KeyCode::Char('r') => {
+                    self.prs = GithubClient::new().my_open_prs();
+                    self.switch_zone(self.zone);
+                }
                 _ => {}
             }
         } else {

@@ -36,7 +36,7 @@ pub fn render(frame: &mut Frame, app: &App) {
     }
 
     let hints = match app.mode {
-        Mode::Normal => " NORMAL  j/k gg/G move · C-hjkl pane · o new (from PR on PR pane) · e edit · x done/undo · dd delete · V visual · q quit",
+        Mode::Normal => " NORMAL  j/k gg/G move · C-hjkl pane · C-r refresh PRs · o new (from PR on PR pane) · e edit · x done/undo · dd delete · V visual · q quit",
         Mode::Visual { .. } => " VISUAL  j/k extend · x move · d delete · Esc cancel",
         Mode::Insert { .. } => " INSERT  Tab field · Enter save · Esc cancel · C-a/e C-b/f M-b/f move · C-w C-u C-k M-d C-d delete",
     };
